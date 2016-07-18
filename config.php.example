@@ -1,0 +1,16 @@
+<?php
+
+    $config = [];
+    
+    $config['bot'] = [
+            'nick' => 'amadorbot',
+            'logs' => __DIR__.'/error/',
+            'data' => __DIR__.'/data/'];
+
+    $config['telegram'] = [
+            'token' => 'XXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'];
+
+    $config['logs'] = [
+            'path' => __DIR__.'/logs/'];
+
+?>

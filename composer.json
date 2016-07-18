@@ -1,0 +1,15 @@
+{
+    "name": "mozillabrasil/amador-telegram",
+    "description": "Telegram Bot",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Mozilla Community Brazil",
+            "email": "comunidade@mozillabrasil.org.br"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "irazasyed/telegram-bot-sdk": "^2.0"
+    }
+}
