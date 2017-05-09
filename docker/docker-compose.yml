@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  php:
+    build: ./php
+    container_name: php
+    ports:
+      - "80:80"
+    volumes:
+      - ../:/var/www
+      - ./php/20-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    command: "php -S 0.0.0.0:80 -t public/"
+
+  ngrok:
+    image: wernight/ngrok
+    ports:
+      - "8000:4040"
+    container_name: ngrok
+    command: "ngrok http php:80"
+
