@@ -124,28 +124,21 @@ function logMessage( $message ) {
 }
 
 // Function to get karma word
-function karmaWord( $message, $plus ) {
+function karmaWord( $message ) {
 
-	// Set separator
-	$separator = ($plus) ? '++' : '--';
+	preg_match("/@[A-Za-z0-9]\w+\s(\+\+|\-\-)/", $message, $word);
 
-	// Remove many whitespaces
-	while (find('  ', $message)) {
-		$message = str_replace('  ', ' ', $message);
-	}
+	if(!isset($word[0])){
+	    return false;
+    }
 
-	// Parse
-	$word = str_replace(' ' . $separator, $separator, $message);
-	$word = explode($separator, $word)[0];
-	$temp = explode(' ', $word);
-	$word = end($temp);
-	$word = strtolower($word);
+	preg_match("/@[A-Za-z0-9]\w+/", $word[0], $user);
 
-	if (in_array($word, ['c', 'd'])) {
-		return false;
-	} else {
-		return $word;
-	}
+    if(!isset($user[0])){
+        return false;
+    }
+
+    return $user[0];
 
 }
 
@@ -202,35 +195,47 @@ function karma( $word, $plus, $message ) {
 }
 
 // Open stream content
-$socket = file_get_contents('php://input');
+receiveMessage(file_get_contents('php://input'));
 
-// If has content
-if (trim($socket) != '') {
+function receiveMessage($socket){
+
+    if (empty($socket) || trim($socket) == '') {
+		return;
+    }
 	$json = decodeJson($socket);
 
 	if ($json['message']['chat']['type'] == 'group') {
 		logMessage($json['message']);
 	}
 
-	// Init
+	$userMention = isset($json['message']['entities'][0]['type']) ? $json['message']['entities'][0]['type'] : null;
+
+	if(empty($userMention) && $userMention != 'mention') {
+		return;
+	}
+
 	if (find('++', $json['message']['text'])) {
 
-		$word = karmaWord($json['message']['text'], true);
+		$word = karmaWord($json['message']['text']);
 
-		if ($word !== false) {
-			karma($word, true, $json['message']);
-		}
+		if (!$word) {
+		    return;
+        }
 
-	} else if (find('--', $json['message']['text'])) {
+        karma($word, true, $json['message']);
 
-		$word = karmaWord($json['message']['text'], false);
-
-		if ($word !== false) {
-			karma($word, false, $json['message']);
-		}
+		return;
 
 	}
 
+	$word = karmaWord($json['message']['text']);
+
+    if (!$word) {
+        return;
+    }
+
+	karma($word, false, $json['message']);
+
+	return;
 }
 
-?>
