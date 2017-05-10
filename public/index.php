@@ -124,28 +124,21 @@ function logMessage( $message ) {
 }
 
 // Function to get karma word
-function karmaWord( $message, $plus ) {
+function karmaWord( $message ) {
 
-	// Set separator
-	$separator = ($plus) ? '++' : '--';
+	preg_match("/@[A-Za-z0-9]\w+\s(\+\+|\-\-)/", $message, $word);
 
-	// Remove many whitespaces
-	while (find('  ', $message)) {
-		$message = str_replace('  ', ' ', $message);
-	}
+	if(!isset($word[0])){
+	    return false;
+    }
 
-	// Parse
-	$word = str_replace(' ' . $separator, $separator, $message);
-	$word = explode($separator, $word)[0];
-	$temp = explode(' ', $word);
-	$word = end($temp);
-	$word = strtolower($word);
+	preg_match("/@[A-Za-z0-9]\w+/", $word[0], $user);
 
-	if (in_array($word, ['c', 'd'])) {
-		return false;
-	} else {
-		return $word;
-	}
+    if(!isset($user[0])){
+        return false;
+    }
+
+    return $user[0];
 
 }
 
@@ -223,7 +216,7 @@ function receiveMessage($socket){
 
 	if (find('++', $json['message']['text'])) {
 
-		$word = karmaWord($json['message']['text'], true);
+		$word = karmaWord($json['message']['text']);
 
 		if (!$word) {
 		    return;
@@ -235,7 +228,7 @@ function receiveMessage($socket){
 
 	}
 
-	$word = karmaWord($json['message']['text'], false);
+	$word = karmaWord($json['message']['text']);
 
     if (!$word) {
         return;
