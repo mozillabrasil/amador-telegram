@@ -202,35 +202,47 @@ function karma( $word, $plus, $message ) {
 }
 
 // Open stream content
-$socket = file_get_contents('php://input');
+receiveMessage(file_get_contents('php://input'));
 
-// If has content
-if (trim($socket) != '') {
+function receiveMessage($socket){
+
+    if (empty($socket) || trim($socket) == '') {
+		return;
+    }
 	$json = decodeJson($socket);
 
 	if ($json['message']['chat']['type'] == 'group') {
 		logMessage($json['message']);
 	}
 
-	// Init
+	$userMention = isset($json['message']['entities'][0]['type']) ? $json['message']['entities'][0]['type'] : null;
+
+	if(empty($userMention) && $userMention != 'mention') {
+		return;
+	}
+
 	if (find('++', $json['message']['text'])) {
 
 		$word = karmaWord($json['message']['text'], true);
 
-		if ($word !== false) {
-			karma($word, true, $json['message']);
-		}
+		if (!$word) {
+		    return;
+        }
 
-	} else if (find('--', $json['message']['text'])) {
+        karma($word, true, $json['message']);
 
-		$word = karmaWord($json['message']['text'], false);
-
-		if ($word !== false) {
-			karma($word, false, $json['message']);
-		}
+		return;
 
 	}
 
+	$word = karmaWord($json['message']['text'], false);
+
+    if (!$word) {
+        return;
+    }
+
+	karma($word, false, $json['message']);
+
+	return;
 }
 
-?>
