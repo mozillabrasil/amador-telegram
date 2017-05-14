@@ -146,7 +146,6 @@ function karmaWord( $message ) {
 function karma( $word, $plus, $message ) {
 
 	global $config;
-	global $telegram;
 
 	// Value to increase/decrease
 	$value = ($plus) ? 1 : -1;
@@ -183,15 +182,54 @@ function karma( $word, $plus, $message ) {
 		$karmamsg = $word . ' deve ' . abs($karmadb[$word]) . ' MozLove';
 	}
 
-	// Notify
-	$notify = $telegram->sendMessage([
-    'chat_id' => $message['chat']['id'],
-    'text' => $karmamsg,
-    'disable_notification' => false,
-    'reply_to_message_id' => $message['message_id']
-  ]);
-  $messageId = $notify->getMessageId();
+	sendMessage($karmamsg, $message);
+	return;
 
+}
+
+function getMozLoves($message){
+	global $config;
+
+	$db = implode('/', [$config['bot']['data'], 'karma.json']);
+
+	$jsonDatabase = getJson($db);
+
+	arsort($jsonDatabase);
+
+	$msg = '';
+
+	foreach($jsonDatabase as $user => $mozloves){
+
+		$msg .= $user . ": " . $mozloves . "\n";
+
+	}
+
+	sendMessage($msg, $message);
+	return;
+	
+}
+
+function sendMessage($msg, $telegramMessage){
+	global $telegram;
+
+	$keyboard = [['/mozloves']];
+
+	$reply_markup = $telegram->replyKeyboardMarkup([
+		'keyboard' => $keyboard, 
+		'resize_keyboard' => true, 
+		'one_time_keyboard' => true
+	]);
+
+	$notify = $telegram->sendMessage([
+		'chat_id' => $telegramMessage['chat']['id'],
+		'text' => $msg,
+		'disable_notification' => false,
+		'reply_to_message_id' => $telegramMessage['message_id'],
+		'reply_markup' => $reply_markup
+	]);
+
+	$messageId = $notify->getMessageId();
+	return;
 }
 
 // Open stream content
@@ -202,10 +240,17 @@ function receiveMessage($socket){
     if (empty($socket) || trim($socket) == '') {
 		return;
     }
+	
 	$json = decodeJson($socket);
 
 	if ($json['message']['chat']['type'] == 'group') {
 		logMessage($json['message']);
+	}
+
+	if($json['message']['text'] == '/mozloves'){
+
+		getMozLoves($json['message']);
+		return;
 	}
 
 	$userMention = isset($json['message']['entities'][0]['type']) ? $json['message']['entities'][0]['type'] : null;
@@ -223,7 +268,6 @@ function receiveMessage($socket){
         }
 
         karma($word, true, $json['message']);
-
 		return;
 
 	}
@@ -235,7 +279,6 @@ function receiveMessage($socket){
     }
 
 	karma($word, false, $json['message']);
-
 	return;
 }
 
