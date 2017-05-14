@@ -146,7 +146,6 @@ function karmaWord( $message ) {
 function karma( $word, $plus, $message ) {
 
 	global $config;
-	global $telegram;
 
 	// Value to increase/decrease
 	$value = ($plus) ? 1 : -1;
@@ -183,19 +182,12 @@ function karma( $word, $plus, $message ) {
 		$karmamsg = $word . ' deve ' . abs($karmadb[$word]) . ' MozLove';
 	}
 
-	// Notify
-	$notify = $telegram->sendMessage([
-    'chat_id' => $message['chat']['id'],
-    'text' => $karmamsg,
-    'disable_notification' => false,
-    'reply_to_message_id' => $message['message_id']
-  ]);
-  $messageId = $notify->getMessageId();
+	sendMessage($karmamsg, $message);
+	return;
 
 }
 
 function getMozLoves($message){
-	global $telegram;
 	global $config;
 
 	$db = implode('/', [$config['bot']['data'], 'karma.json']);
@@ -212,6 +204,14 @@ function getMozLoves($message){
 
 	}
 
+	sendMessage($msg, $message);
+	return;
+	
+}
+
+function sendMessage($msg, $telegramMessage){
+	global $telegram;
+
 	$keyboard = [['/mozloves']];
 
 	$reply_markup = $telegram->replyKeyboardMarkup([
@@ -221,10 +221,10 @@ function getMozLoves($message){
 	]);
 
 	$notify = $telegram->sendMessage([
-		'chat_id' => $message['chat']['id'],
+		'chat_id' => $telegramMessage['chat']['id'],
 		'text' => $msg,
 		'disable_notification' => false,
-		'reply_to_message_id' => $message['message_id'],
+		'reply_to_message_id' => $telegramMessage['message_id'],
 		'reply_markup' => $reply_markup
 	]);
 
