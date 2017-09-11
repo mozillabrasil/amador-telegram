@@ -206,7 +206,7 @@ function getMozLoves($message){
 
 	sendMessage($msg, $message);
 	return;
-	
+
 }
 
 function sendMessage($msg, $telegramMessage){
@@ -215,8 +215,8 @@ function sendMessage($msg, $telegramMessage){
 	$keyboard = [['/mozloves']];
 
 	$reply_markup = $telegram->replyKeyboardMarkup([
-		'keyboard' => $keyboard, 
-		'resize_keyboard' => true, 
+		'keyboard' => $keyboard,
+		'resize_keyboard' => true,
 		'one_time_keyboard' => true
 	]);
 
@@ -240,11 +240,13 @@ function receiveMessage($socket){
     if (empty($socket) || trim($socket) == '') {
 		return;
     }
-	
+
 	$json = decodeJson($socket);
 
 	if ($json['message']['chat']['type'] == 'group') {
 		logMessage($json['message']);
+	}else{
+		return;
 	}
 
 	if($json['message']['text'] == '/mozloves'){
@@ -281,4 +283,3 @@ function receiveMessage($socket){
 	karma($word, false, $json['message']);
 	return;
 }
-
